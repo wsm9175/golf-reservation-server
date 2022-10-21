@@ -7,6 +7,7 @@ import com.sun.jdi.request.DuplicateRequestException;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PropertyValueException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,14 +16,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User auth(LoginDto loginDto) throws NullPointerException, IllegalStateException{
+    public User auth(LoginDto loginDto) throws NullPointerException, IllegalStateException, IllegalArgumentException{
         String id = loginDto.getUserId();
         String password = loginDto.getPassword();
 
         User user = userRepository.findByUserId(id).orElseThrow(NullPointerException::new);
 
-        if(!user.getPassword().equals(password)){
+        if(!passwordEncoder.matches(password,user.getPassword())){
             throw new IllegalAccessError("비밀번호가 불일치 합니다.");
         }
         return user;

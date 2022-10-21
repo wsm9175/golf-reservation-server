@@ -9,6 +9,7 @@ import com.sun.jdi.request.DuplicateRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PropertyValueException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +26,12 @@ import static com.lodong.spring.golfreservation.util.MakeResponseEntity.getRespo
 public class AuthController {
     private final AuthService authService;
 
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(AuthService authService) {
+
+    public AuthController(AuthService authService, PasswordEncoder passwordEncoder) {
         this.authService = authService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/do")
@@ -58,6 +62,10 @@ public class AuthController {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = illegalAccessError.getMessage();
             return getResponseMessage(statusEnum, message);
+        } catch (IllegalArgumentException illegalArgumentException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "비밀번호가 일치하지 않습니다.";
+            return getResponseMessage(statusEnum, message);
         }
     }
 
@@ -68,7 +76,7 @@ public class AuthController {
         User user = User.builder()
                 .id(UUID.randomUUID().toString())
                 .userId(registrationDto.getUserId())
-                .password(registrationDto.getPassword())
+                .password(passwordEncoder.encode(registrationDto.getPassword()))
                 .name(registrationDto.getName())
                 .birth(registrationDto.getBirth())
                 .phoneNumber(registrationDto.getPhoneNumber())
