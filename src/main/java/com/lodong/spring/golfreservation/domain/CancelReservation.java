@@ -3,9 +3,7 @@ package com.lodong.spring.golfreservation.domain;
 import lombok.*;
 
 import javax.persistence.*;
-import java.sql.Time;
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
 @Getter @Setter @ToString @Builder

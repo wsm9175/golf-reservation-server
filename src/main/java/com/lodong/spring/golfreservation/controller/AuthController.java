@@ -1,6 +1,7 @@
 package com.lodong.spring.golfreservation.controller;
 
 import com.lodong.spring.golfreservation.domain.User;
+import com.lodong.spring.golfreservation.dto.ChangePasswordDto;
 import com.lodong.spring.golfreservation.dto.LoginDto;
 import com.lodong.spring.golfreservation.dto.RegistrationDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
@@ -10,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PropertyValueException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -62,7 +60,7 @@ public class AuthController {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = illegalAccessError.getMessage();
             return getResponseMessage(statusEnum, message);
-        } catch (IllegalArgumentException illegalArgumentException){
+        } catch (IllegalArgumentException illegalArgumentException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "비밀번호가 일치하지 않습니다.";
             return getResponseMessage(statusEnum, message);
@@ -83,8 +81,8 @@ public class AuthController {
                 .agreeTerm(registrationDto.isAgreeTerm())
                 .build();
 
-        if(user.getId() == null || user.getPassword() == null || user.getName() == null || user.getBirth() == null
-                    || user.getPhoneNumber() == null){
+        if (user.getId() == null || user.getPassword() == null || user.getName() == null || user.getBirth() == null
+                || user.getPhoneNumber() == null) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "필드중 null인 값이 존재 합니다." + user;
             return getResponseMessage(statusEnum, message);
@@ -101,13 +99,55 @@ public class AuthController {
             String message = "회원가입 성공";
             String userUuid = user.getId();
             return getResponseMessage(statusEnum, message, userUuid);
-        }catch (DuplicateRequestException duplicateRequestException){
+        } catch (DuplicateRequestException duplicateRequestException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = duplicateRequestException.getMessage();
             return getResponseMessage(statusEnum, message);
-        }catch (PropertyValueException propertyException){
+        } catch (PropertyValueException propertyException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "잘못된 형식을 가진 값이 들어오거나 null인 값이 있습니다. : " + propertyException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @GetMapping("/find/id")
+    public ResponseEntity<?> findIdUsingPhoneNumber(String phoneNumber) {
+        try {
+            String userId = authService.findIdUsingPhoneNumber(phoneNumber);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "조회 성공";
+            return getResponseMessage(statusEnum, message, userId);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @GetMapping("find/password")
+    public ResponseEntity<?> findPasswordByPhoneNumberAndId(String phoneNumber, String userId) {
+        try {
+            String changePasswordSessionId = authService.findPasswordByPhoneNumberAndId(phoneNumber, userId);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "조회 성공";
+            return getResponseMessage(statusEnum, message, changePasswordSessionId);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @PostMapping("alter/password")
+    public ResponseEntity<?> findPasswordByPhoneNumberAndId(@RequestBody ChangePasswordDto changePassword) {
+        try {
+            authService.alterPassword(changePassword.getChangeUUID(), changePassword.getChangePassword(), changePassword.getUserId(), changePassword.getPhoneNumber());
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "변경성공";
+            return getResponseMessage(statusEnum, message);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
             return getResponseMessage(statusEnum, message);
         }
     }

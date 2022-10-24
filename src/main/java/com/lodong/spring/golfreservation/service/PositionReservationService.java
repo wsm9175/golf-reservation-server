@@ -89,7 +89,6 @@ public class PositionReservationService {
                 positionReservationDtoList.add(positionReservationDto);
             }
 */
-
     }
 
     @Transactional
@@ -100,7 +99,6 @@ public class PositionReservationService {
         if (time == null) {
             throw new NullPointerException(reservationDto.getTime() + " 시간은 DB에 없는 예약 시간입니다.");
         }
-
         //포지션과 입력된 예약 시간이 맞는지 여부 확인
         Position position = Position.builder()
                 .id(reservationDto.getPositionId())
