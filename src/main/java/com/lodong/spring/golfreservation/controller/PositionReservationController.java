@@ -1,6 +1,5 @@
 package com.lodong.spring.golfreservation.controller;
 
-import com.lodong.spring.golfreservation.domain.Position;
 import com.lodong.spring.golfreservation.dto.PositionReservationDto;
 import com.lodong.spring.golfreservation.dto.ReservationDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;

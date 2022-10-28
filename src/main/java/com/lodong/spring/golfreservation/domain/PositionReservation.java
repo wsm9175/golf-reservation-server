@@ -30,7 +30,6 @@ public class PositionReservation {
     @JoinColumn(name = "time")
     private Timetable time;
 
-    //@DateTimeFormat(pattern = "yyyy-MM-dd hh:mm:ss")
     @Column(nullable = false)
     private LocalDateTime createAt;
 

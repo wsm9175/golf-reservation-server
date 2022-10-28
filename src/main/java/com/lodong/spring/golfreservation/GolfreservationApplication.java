@@ -8,10 +8,10 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 public class GolfreservationApplication {
-	@PostConstruct
+	/*@PostConstruct
 	void started() {
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-	}
+	}*/
 	public static void main(String[] args) {
 		SpringApplication.run(GolfreservationApplication.class, args);
 	}

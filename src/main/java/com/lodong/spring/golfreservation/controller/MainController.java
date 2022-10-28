@@ -1,6 +1,5 @@
 package com.lodong.spring.golfreservation.controller;
 
-import com.lodong.spring.golfreservation.domain.Advertisement;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
 import com.lodong.spring.golfreservation.service.MainService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;

@@ -42,15 +42,18 @@ public class PositionReservationService {
         //예약정보 삽입
         //포지션에 대해(key) 각 시간 테이블을 가져와 해당 시간이 예약되었는지 확인 및 가공
         for (Position position : positionList) {
+            //예약 목록을 가져온다.
             List<PositionReservationDto> positionReservationDtoList = new ArrayList<>();
             int positionId = position.getId();
+            //해당 타석의 예약 가능 시간 정보를 가져온다.
             for (PositionTime positionTime : positionTimes.stream().filter(v -> v.getPosition().getId() == positionId).toList()) {
                 PositionReservationDto positionReservationDto = new PositionReservationDto();
                 Timetable positionTimeTable = positionTime.getTimeId();
                 boolean isReservation = false;
                 for (PositionReservation positionReservation : positionReservations) {
                     Timetable positionReservationTimeTable = positionReservation.getTime();
-                    if (positionTimeTable.getId().equals(positionReservationTimeTable.getId())) {
+                    //예약된 시간과 포지션 예약 가능시간중 일치하는 시간이 있다면. + 포지션 아이디도 비교 해야함
+                    if (positionTimeTable.getId().equals(positionReservationTimeTable.getId()) && positionId == positionReservation.getPositionId()) {
                         isReservation = true;
                     }
                 }
@@ -67,28 +70,6 @@ public class PositionReservationService {
         }
 
         return reservationInfoByPosition;
-/*
-
-            for (PositionTime positionTime : positionTimes) {
-                PositionReservationDto positionReservationDto = new PositionReservationDto();
-                Timetable positionTimeTable = positionTime.getTimeId();
-                boolean isReservation = false;
-                for (PositionReservation positionReservation : positionReservations) {
-                    Timetable positionReservationTimeTable = positionReservation.getTime();
-                    if (positionTimeTable.getId().equals(positionReservationTimeTable.getId())) {
-                        isReservation = true;
-                    }
-                }
-                LocalTime startTime = positionTimeTable.getStartTime();
-                LocalTime endTime = positionTimeTable.getEndTime();
-
-                positionReservationDto.setStartTime(startTime);
-                positionReservationDto.setEndTime(endTime);
-                positionReservationDto.setReservation(isReservation);
-
-                positionReservationDtoList.add(positionReservationDto);
-            }
-*/
     }
 
     @Transactional
