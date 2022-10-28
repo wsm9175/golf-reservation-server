@@ -4,7 +4,6 @@ import com.lodong.spring.golfreservation.domain.*;
 import com.lodong.spring.golfreservation.dto.CancelReservationDto;
 import com.lodong.spring.golfreservation.dto.MyLessonReservationInfoDto;
 import com.lodong.spring.golfreservation.dto.MyPositionReservationInfoDto;
-import com.lodong.spring.golfreservation.dto.MyReservationDto;
 import com.lodong.spring.golfreservation.repository.CancelReservationRepository;
 import com.lodong.spring.golfreservation.repository.LessonReservationRepository;
 import com.lodong.spring.golfreservation.repository.PositionReservationRepository;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -84,13 +82,17 @@ public class MyInfoService {
         //User 유효성 검사
         User loginUser = userRepository.findById(cancelReservationDto.getUserId()).orElseThrow(() -> new RuntimeException("없는 유저 정보 입니다."));
 
-        //해당 유저가 당일 두시간 전에 취소했는지 확인
-        boolean isTodayCancel = cancelReservationRepository.existsByUserAndCreateAt(loginUser, getNowDate());
-
+        //당일 예약 취소 불가능
+        /*boolean isTodayCancel = cancelReservationRepository.existsByUserAndCreateAt(loginUser, getNowDate());
         if (isTodayCancel) {
             throw new RuntimeException("취소 당일 재예약후 예약 취소는 불가능 합니다.");
+        }*/
+        List<CancelReservation> cancelReservations = cancelReservationRepository.findByUserAndCreateAt(loginUser, getNowDate());
+        if(cancelReservations.size() >= 2){
+            throw new RuntimeException("당일 예약 취소는 두번까지 가능합니다.");
         }
 
+        //해당 유저가 당일 두시간 전에 취소했는지 확인
         //삭제 수행
         if (cancelReservationDto.getReservationType().equals(RESERVATION_POSITION)) {
             PositionReservation positionReservation = positionReservationRepository.findById(cancelReservationDto.getReservationId()).orElseThrow(() -> new RuntimeException("없는 예약입니다."));
@@ -157,6 +159,11 @@ public class MyInfoService {
         } else {
             throw new RuntimeException("잘못된 예약 타입입니다.");
         }
+    }
+
+    public boolean isReservationToday(String uid, LocalDate date){
+        User loginUser = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("없는 유저 정보 입니다."));
+        return positionReservationRepository.existsByUserIdAndDate(loginUser, date);
     }
 
     private LocalDate getNowDate() {

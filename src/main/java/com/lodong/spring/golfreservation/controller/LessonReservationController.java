@@ -9,12 +9,12 @@ import com.lodong.spring.golfreservation.service.LessonReservationService;
 import com.lodong.spring.golfreservation.service.PositionReservationService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.hibernate.PropertyValueException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -145,6 +144,10 @@ public class LessonReservationController {
         } catch (SQLIntegrityConstraintViolationException sqlIntegrityConstraintViolationException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = reservation.getTime() + "시간의 " + reservation.getPositionId() + "번 타석은 이미 예약되었습니다.";
+            return getResponseMessage(statusEnum, message);
+        }catch (DataIntegrityViolationException dataIntegrityViolationException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "하루에 한번의 예약만 가능합니다.";
             return getResponseMessage(statusEnum, message);
         }
 

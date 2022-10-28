@@ -7,9 +7,11 @@ import com.lodong.spring.golfreservation.responseentity.StatusEnum;
 import com.lodong.spring.golfreservation.service.MyInfoService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 
@@ -65,6 +67,23 @@ public class MyInfoController {
         }catch (RuntimeException runtimeException){
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = runtimeException.getMessage();
+            return MakeResponseEntity.getResponseMessage(statusEnum, message);
+        }
+    }
+    @GetMapping("/today-reservation")
+    public ResponseEntity<?> isReservationToday(String uid,@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        try {
+            boolean isTodayReservation = myInfoService.isReservationToday(uid, date);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "오늘 예약 했는지 여부";
+            return MakeResponseEntity.getResponseMessage(statusEnum, message, isTodayReservation);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.NOT_FOUND;
+            String message = nullPointerException.getMessage();
+            return MakeResponseEntity.getResponseMessage(statusEnum, message);
+        } catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.NOT_FOUND;
+            String message = "알수없는 에러"  + e.getMessage();
             return MakeResponseEntity.getResponseMessage(statusEnum, message);
         }
     }
