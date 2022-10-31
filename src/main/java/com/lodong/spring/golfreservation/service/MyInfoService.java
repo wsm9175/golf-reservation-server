@@ -141,7 +141,7 @@ public class MyInfoService {
                 }
                 lessonReservationRepository.deleteById(cancelReservationDto.getReservationId());
                 positionReservationRepository.deleteById(positionReservationId);
-                positionReservationRepository.deleteById(cancelReservationDto.getReservationId());
+                //positionReservationRepository.deleteById(cancelReservationDto.getReservationId());
                 CancelReservation cancelReservation = CancelReservation.builder()
                         .id(lessonReservation.getId())
                         .user(lessonReservation.getUser())

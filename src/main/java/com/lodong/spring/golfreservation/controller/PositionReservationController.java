@@ -29,22 +29,6 @@ public class PositionReservationController {
         this.positionReservationService = positionReservationService;
     }
 
-  /*  @GetMapping("/get/list")
-    public ResponseEntity<?> getPositionList() {
-        StatusEnum statusEnum = StatusEnum.OK;
-        String message = "타석 리스트";
-        List<Position> positionList = positionReservationService.getPositionList();
-        return getResponseMessage(statusEnum, message, positionList);
-    }
-*/
-  /*  @GetMapping("/get/reservation-list")
-    public ResponseEntity<?> getReservationListByDateAndPosition(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date, int position) {
-        List<PositionReservationDto> positionReservationDtoList = positionReservationService.getReservationListByDateAndPosition(date, position);
-        StatusEnum statusEnum = StatusEnum.OK;
-        String message = position + "번 타석 에 대한 시간 예약 정보";
-        return getResponseMessage(statusEnum, message, positionReservationDtoList);
-    }  */
-
     @GetMapping("/get/reservation-list")
     public ResponseEntity<?> getReservationListByDateAndPosition(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)LocalDate date) {
         Map<Integer, List<PositionReservationDto>> positionReservationDtoList = positionReservationService.getReservationListByDateAndPosition(date);

@@ -55,6 +55,7 @@ public class PositionReservationService {
                     //예약된 시간과 포지션 예약 가능시간중 일치하는 시간이 있다면. + 포지션 아이디도 비교 해야함
                     if (positionTimeTable.getId().equals(positionReservationTimeTable.getId()) && positionId == positionReservation.getPositionId()) {
                         isReservation = true;
+                        positionReservationDto.setReservationMemberName(positionReservation.getUserId().getName());
                     }
                 }
                 LocalTime startTime = positionTimeTable.getStartTime();

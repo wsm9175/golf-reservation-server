@@ -1,5 +1,6 @@
 package com.lodong.spring.golfreservation.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Entity
 @Getter @Setter @ToString @Builder
@@ -27,8 +29,8 @@ public class User {
     private String name;
 
     @Column(nullable = false)
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date birth;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate birth;
 
     @Column(nullable = false)
     private String phoneNumber;

@@ -1,5 +1,6 @@
 package com.lodong.spring.golfreservation.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import javax.persistence.*;
@@ -22,6 +23,7 @@ public class LessonReservation {
     private PositionReservation positionReservation;
 
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDate date;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -1,5 +1,6 @@
 package com.lodong.spring.golfreservation.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import javax.persistence.Column;
@@ -18,6 +19,7 @@ public class Timetable {
     private LocalTime startTime;
 
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss", timezone = "Asia/Seoul")
     private LocalTime endTime;
 
 }
