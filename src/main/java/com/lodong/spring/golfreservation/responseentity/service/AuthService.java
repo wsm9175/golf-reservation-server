@@ -1,8 +1,11 @@
-package com.lodong.spring.golfreservation.service;
+package com.lodong.spring.golfreservation.responseentity.service;
 
+import com.lodong.spring.golfreservation.domain.Admin;
 import com.lodong.spring.golfreservation.domain.ChangePassword;
 import com.lodong.spring.golfreservation.domain.User;
+import com.lodong.spring.golfreservation.dto.AdminLoginDto;
 import com.lodong.spring.golfreservation.dto.LoginDto;
+import com.lodong.spring.golfreservation.repository.AdminRepository;
 import com.lodong.spring.golfreservation.repository.ChangePasswordRepository;
 import com.lodong.spring.golfreservation.repository.UserRepository;
 import com.sun.jdi.request.DuplicateRequestException;
@@ -25,6 +28,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ChangePasswordRepository changePasswordRepository;
+    private final AdminRepository adminRepository;
 
 
     public User auth(LoginDto loginDto) throws NullPointerException, IllegalStateException, IllegalArgumentException {
@@ -74,6 +78,13 @@ public class AuthService {
         changePasswordRepository.save(changePassword);
 
         return changePassword.getId();
+    }
+
+    public Admin authAdmin(AdminLoginDto adminLoginDto){
+        Admin admin = adminRepository
+                .findByAdminIdAndPassword(adminLoginDto.getUserId(), adminLoginDto.getPassword())
+                .orElseThrow(()->new NullPointerException("해당 admin은 존재하지 않습니다."));
+        return admin;
     }
 
     @Transactional

@@ -1,7 +1,8 @@
-package com.lodong.spring.golfreservation.service;
+package com.lodong.spring.golfreservation.responseentity.service;
 
 import com.lodong.spring.golfreservation.domain.*;
 import com.lodong.spring.golfreservation.dto.LessonReservationDto;
+import com.lodong.spring.golfreservation.dto.ReservationByInstructorDto;
 import com.lodong.spring.golfreservation.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -81,5 +84,25 @@ public class LessonReservationService {
         } else {
             throw new NullPointerException(reservationDto.getTime() + "시간은 " + reservationDto.getPositionId() + "번 타석을 예약할 수 있는 시간이 아닙니다.");
         }
+    }
+
+    public List<ReservationByInstructorDto> getReservationListByInstructorIdAndDate(String instructorId, LocalDate date){
+        List<LessonReservation> lessonReservations = lessonReservationRepository
+                .findByDateAndInstructorId(date, instructorId)
+                .orElseThrow(()-> new NullPointerException("해당 강사의 레슨 예약정보가 존재하지 않습니다."));
+
+        List<ReservationByInstructorDto> reservationByInstructorDtoList = new ArrayList<>();
+
+        lessonReservations.forEach(lessonReservation -> {
+            ReservationByInstructorDto reservationByInstructorDto = new ReservationByInstructorDto();
+            reservationByInstructorDto.setLessonId(lessonReservation.getId());
+            reservationByInstructorDto.setPositionNumber(lessonReservation.getPositionReservation().getPositionId());
+            reservationByInstructorDto.setStartTime(lessonReservation.getTime().getStartTime());
+            reservationByInstructorDto.setEndTime(lessonReservation.getTime().getEndTime());
+            reservationByInstructorDto.setCustomerName(lessonReservation.getUser().getName());
+            reservationByInstructorDtoList.add(reservationByInstructorDto);
+        });
+
+        return reservationByInstructorDtoList;
     }
 }

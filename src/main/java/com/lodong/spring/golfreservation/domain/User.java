@@ -2,14 +2,11 @@ package com.lodong.spring.golfreservation.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
-import java.sql.Date;
 import java.time.LocalDate;
 
 @Entity

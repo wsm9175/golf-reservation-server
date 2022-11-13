@@ -4,7 +4,7 @@ import com.lodong.spring.golfreservation.domain.User;
 import com.lodong.spring.golfreservation.dto.CancelReservationDto;
 import com.lodong.spring.golfreservation.dto.UserDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
-import com.lodong.spring.golfreservation.service.MyInfoService;
+import com.lodong.spring.golfreservation.responseentity.service.MyInfoService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;

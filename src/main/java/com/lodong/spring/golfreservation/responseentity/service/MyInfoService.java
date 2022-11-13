@@ -1,4 +1,4 @@
-package com.lodong.spring.golfreservation.service;
+package com.lodong.spring.golfreservation.responseentity.service;
 
 import com.lodong.spring.golfreservation.domain.*;
 import com.lodong.spring.golfreservation.dto.CancelReservationDto;

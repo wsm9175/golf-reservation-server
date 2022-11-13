@@ -1,7 +1,7 @@
 package com.lodong.spring.golfreservation.controller;
 
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
-import com.lodong.spring.golfreservation.service.MainService;
+import com.lodong.spring.golfreservation.responseentity.service.MainService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +61,17 @@ public class MainController {
             StatusEnum statusEnum = StatusEnum.NOT_FOUND;
             String message = "광고 사진이 존재하지 않습니다.";
             return MakeResponseEntity.getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @GetMapping("/update/holiday")
+    public boolean updateHoliday(String year, String month) {
+        try {
+            mainService.updateHoliday(year, month);
+            return true;
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
     }
 

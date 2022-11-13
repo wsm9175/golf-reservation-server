@@ -1,11 +1,13 @@
 package com.lodong.spring.golfreservation.controller;
 
+import com.lodong.spring.golfreservation.domain.Admin;
 import com.lodong.spring.golfreservation.domain.User;
+import com.lodong.spring.golfreservation.dto.AdminLoginDto;
 import com.lodong.spring.golfreservation.dto.ChangePasswordDto;
 import com.lodong.spring.golfreservation.dto.LoginDto;
 import com.lodong.spring.golfreservation.dto.RegistrationDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
-import com.lodong.spring.golfreservation.service.AuthService;
+import com.lodong.spring.golfreservation.responseentity.service.AuthService;
 import com.sun.jdi.request.DuplicateRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PropertyValueException;
@@ -151,4 +153,30 @@ public class AuthController {
             return getResponseMessage(statusEnum, message);
         }
     }
+
+    /////////////////////웹 - ADMIN
+    @PostMapping("/do-admin")
+    public ResponseEntity<?> authAdmin(@RequestBody AdminLoginDto adminLoginDto){
+        try {
+            Admin admin = authService.authAdmin(adminLoginDto);
+            String userUuid = admin.getId();
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "로그인 성공";
+            return getResponseMessage(statusEnum, message, userUuid);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.NOT_FOUND;
+            String message = "해당 아이디는 존재하지 않습니다.";
+            return getResponseMessage(statusEnum, message);
+        } catch (IllegalAccessError illegalAccessError) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = illegalAccessError.getMessage();
+            return getResponseMessage(statusEnum, message);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "비밀번호가 일치하지 않습니다.";
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+
 }

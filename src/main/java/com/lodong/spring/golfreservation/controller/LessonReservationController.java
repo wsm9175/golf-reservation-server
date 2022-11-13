@@ -4,10 +4,12 @@ import com.lodong.spring.golfreservation.domain.Instructor;
 import com.lodong.spring.golfreservation.domain.Position;
 import com.lodong.spring.golfreservation.dto.LessonReservationDto;
 import com.lodong.spring.golfreservation.dto.PositionReservationDto;
+import com.lodong.spring.golfreservation.dto.ReservationByInstructorDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
-import com.lodong.spring.golfreservation.service.LessonReservationService;
-import com.lodong.spring.golfreservation.service.PositionReservationService;
+import com.lodong.spring.golfreservation.responseentity.service.LessonReservationService;
+import com.lodong.spring.golfreservation.responseentity.service.PositionReservationService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;
+import jdk.jshell.Snippet;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PropertyValueException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -55,7 +58,7 @@ public class LessonReservationController {
     @GetMapping("/{fileName}")
     public ResponseEntity<?> instructorFileDownload(@PathVariable String fileName) {
         //Resource resource = resourceLoader.getResource("classpath:static"+File.separator+ "images"+File.separator+"instructor" + File.separator + fileName);
-       /* Resource resource = new ClassPathResource("static" + File.separator + "images" + File.separator + "instructor" + File.separator);*/
+        /* Resource resource = new ClassPathResource("static" + File.separator + "images" + File.separator + "instructor" + File.separator);*/
         try {
          /*   InputStream in = resource.getInputStream();
             File file = File.createTempFile(fileName, ".png");
@@ -103,10 +106,17 @@ public class LessonReservationController {
 
     @GetMapping("/get/reservation-info")
     public ResponseEntity<?> getReservationInfo(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Map<Integer, List<PositionReservationDto>> positionReservationDtoList = positionReservationService.getReservationListByDateAndPosition(date);
-        StatusEnum statusEnum = StatusEnum.OK;
-        String message = "각 타석 에 대한 시간 예약 정보";
-        return getResponseMessage(statusEnum, message, positionReservationDtoList);
+        try {
+            Map<Integer, List<PositionReservationDto>> positionReservationDtoList = positionReservationService.getReservationListByDateAndPosition(date);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "각 타석 에 대한 시간 예약 정보";
+            return getResponseMessage(statusEnum, message, positionReservationDtoList);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+
     }
 
     @PostMapping("/do/reservation")
@@ -119,7 +129,7 @@ public class LessonReservationController {
         }
         if (reservation.getDate().compareTo(getNowDate()) < 0) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = reservation.getDate() + " " + reservation.getTime() + "의 시간은 지난 시간이므로 예약이 불가능 합니다. " +
+            String message = reservation.getDate() + " " + reservation.getTime() + "의 시간은 지난 날짜이므로 예약이 불가능 합니다. " +
                     "현재 시간 : " + getNowDate() + " " + getNowTime();
             return getResponseMessage(statusEnum, message);
         }
@@ -127,6 +137,13 @@ public class LessonReservationController {
         if (reservation.getDate().compareTo(getNowDate()) <= 0 && reservation.getTime().compareTo(getNowTime()) < 0) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = reservation.getDate() + " " + reservation.getTime() + "의 시간은 지난 시간이므로 예약이 불가능 합니다. " +
+                    "현재 시간 : " + getNowDate() + " " + getNowTime();
+            return getResponseMessage(statusEnum, message);
+        }
+
+        if (reservation.getDate().compareTo(getNowDate()) <= 0 && Math.abs(Duration.between(reservation.getTime(), getNowTime()).getSeconds()) < 7200) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = reservation.getDate() + " " + reservation.getTime() + "의 시간은 2시간 전이므로 예약이 불가능 합니다. " +
                     "현재 시간 : " + getNowDate() + " " + getNowTime();
             return getResponseMessage(statusEnum, message);
         }
@@ -145,7 +162,7 @@ public class LessonReservationController {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = reservation.getTime() + "시간의 " + reservation.getPositionId() + "번 타석은 이미 예약되었습니다.";
             return getResponseMessage(statusEnum, message);
-        }catch (DataIntegrityViolationException dataIntegrityViolationException){
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "하루에 한번의 예약만 가능합니다.";
             return getResponseMessage(statusEnum, message);
@@ -155,6 +172,22 @@ public class LessonReservationController {
         String message = reservation.getPositionId() + "번 타석 " + reservation.getDate() + " " + reservation.getTime() + " 예약 성공";
         return getResponseMessage(statusEnum, message);
     }
+
+    ////////////////////Web
+    @GetMapping("/get/reservation-list")
+    public ResponseEntity<?> getReservationListByInstructorIdAndDate(String instructorId, @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        try {
+            List<ReservationByInstructorDto> reservationByInstructorDtoList = lessonReservationService.getReservationListByInstructorIdAndDate(instructorId, date);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = instructorId + " 강사 예약 정보";
+            return getResponseMessage(statusEnum, message, reservationByInstructorDtoList);
+        } catch (Exception e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
 
     private LocalDate getNowDate() {
         LocalDate now = LocalDate.now();
@@ -177,4 +210,5 @@ public class LessonReservationController {
             }
         }
     }
+
 }
