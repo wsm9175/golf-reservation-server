@@ -40,7 +40,7 @@ public class PositionReservationService {
     }
 
 
-    public Map<Integer, List<PositionReservationDto>> getReservationListByDateAndPosition(LocalDate date) throws NullPointerException {
+    public Map<Integer, List<PositionReservationDto>> getReservationListByDateAndInstructorId(LocalDate date) throws NullPointerException {
 
         //타석 목록
         List<Position> positionList = positionRepository.findAll();

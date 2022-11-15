@@ -15,7 +15,6 @@ public class LessonReservationDto {
     private LocalTime time;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createAt;
-    private int positionId;
     private String userId;
     private String instructorId;
 }

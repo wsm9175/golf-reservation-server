@@ -1,7 +1,7 @@
 package com.lodong.spring.golfreservation.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lodong.spring.golfreservation.domain.Instructor;
+import com.lodong.spring.golfreservation.domain.lesson.Instructor;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -19,6 +19,5 @@ public class MyLessonReservationInfoDto {
     private LocalTime endTime;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime createAt;
-    private int positionId;
     private Instructor instructor;
 }

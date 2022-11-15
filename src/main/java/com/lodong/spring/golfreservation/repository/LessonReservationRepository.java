@@ -1,6 +1,6 @@
 package com.lodong.spring.golfreservation.repository;
 
-import com.lodong.spring.golfreservation.domain.LessonReservation;
+import com.lodong.spring.golfreservation.domain.lesson.LessonReservation;
 import com.lodong.spring.golfreservation.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +12,6 @@ public interface LessonReservationRepository extends JpaRepository<LessonReserva
     public List<LessonReservation> findByUser(User user);
 
     public Optional<List<LessonReservation>> findByDateAndInstructorId(LocalDate date, String instructorId);
+
+    public boolean existsByUserAndDate(User user, LocalDate date);
 }

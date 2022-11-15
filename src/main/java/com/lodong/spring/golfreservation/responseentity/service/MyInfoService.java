@@ -1,13 +1,13 @@
 package com.lodong.spring.golfreservation.responseentity.service;
 
 import com.lodong.spring.golfreservation.domain.*;
+import com.lodong.spring.golfreservation.domain.cancel.CancelReservation;
+import com.lodong.spring.golfreservation.domain.cancel.CancelReservationLesson;
+import com.lodong.spring.golfreservation.domain.lesson.LessonReservation;
 import com.lodong.spring.golfreservation.dto.CancelReservationDto;
 import com.lodong.spring.golfreservation.dto.MyLessonReservationInfoDto;
 import com.lodong.spring.golfreservation.dto.MyPositionReservationInfoDto;
-import com.lodong.spring.golfreservation.repository.CancelReservationRepository;
-import com.lodong.spring.golfreservation.repository.LessonReservationRepository;
-import com.lodong.spring.golfreservation.repository.PositionReservationRepository;
-import com.lodong.spring.golfreservation.repository.UserRepository;
+import com.lodong.spring.golfreservation.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +28,8 @@ public class MyInfoService {
     private final LessonReservationRepository lessonReservationRepository;
 
     private final CancelReservationRepository cancelReservationRepository;
+
+    private final CancelReservationLessonRepository cancelReservationLessonRepository;
 
     private final String RESERVATION_POSITION = "타석";
     private final String RESERVATION_LESSON = "레슨";
@@ -62,10 +64,9 @@ public class MyInfoService {
             MyLessonReservationInfoDto lessonReservationInfoDto = new MyLessonReservationInfoDto();
             lessonReservationInfoDto.setId(lessonReservation.getId());
             lessonReservationInfoDto.setDate(lessonReservation.getDate());
-            lessonReservationInfoDto.setStartTime(lessonReservation.getTime().getStartTime());
-            lessonReservationInfoDto.setEndTime(lessonReservation.getTime().getEndTime());
+            lessonReservationInfoDto.setStartTime(lessonReservation.getTime().getLessonTimeTable().getStartTime());
+            lessonReservationInfoDto.setEndTime(lessonReservation.getTime().getLessonTimeTable().getEndTime());
             lessonReservationInfoDto.setCreateAt(lessonReservation.getCreateAt());
-            lessonReservationInfoDto.setPositionId(lessonReservationInfoDto.getPositionId());
             lessonReservationInfoDto.setInstructor(lessonReservation.getInstructor());
             myLessonReservationInfoDtoList.add(lessonReservationInfoDto);
         }
@@ -87,14 +88,14 @@ public class MyInfoService {
         if (isTodayCancel) {
             throw new RuntimeException("취소 당일 재예약후 예약 취소는 불가능 합니다.");
         }*/
-        List<CancelReservation> cancelReservations = cancelReservationRepository.findByUserAndCreateAt(loginUser, getNowDate());
-        if(cancelReservations.size() >= 2){
-            throw new RuntimeException("당일 예약 취소는 두번까지 가능합니다.");
-        }
 
         //해당 유저가 당일 두시간 전에 취소했는지 확인
         //삭제 수행
         if (cancelReservationDto.getReservationType().equals(RESERVATION_POSITION)) {
+            List<CancelReservation> cancelReservations = cancelReservationRepository.findByUserAndCreateAt(loginUser, getNowDate());
+            if (cancelReservations.size() >= 2) {
+                throw new RuntimeException("당일 예약 취소는 두번까지 가능합니다.");
+            }
             PositionReservation positionReservation = positionReservationRepository.findById(cancelReservationDto.getReservationId()).orElseThrow(() -> new RuntimeException("없는 예약입니다."));
             User user = positionReservation.getUserId();
             if (user.getId().equals(cancelReservationDto.getUserId())) {
@@ -123,15 +124,16 @@ public class MyInfoService {
                 throw new RuntimeException("해당 유저가 예약한 값이 아닙니다.");
             }
         } else if (cancelReservationDto.getReservationType().equals(RESERVATION_LESSON)) {
+            List<CancelReservationLesson> cancelReservations = cancelReservationLessonRepository.findByUserAndCreateAt(loginUser, getNowDate());
+            if (cancelReservations.size() >= 2) {
+                throw new RuntimeException("당일 예약 취소는 두번까지 가능합니다.");
+            }
             LessonReservation lessonReservation = lessonReservationRepository.findById(cancelReservationDto.getReservationId()).orElseThrow(() -> new RuntimeException("없는 예약입니다."));
             User user = lessonReservation.getUser();
 
-            String positionReservationId = lessonReservationRepository.
-                    findById(cancelReservationDto.getReservationId()).orElseThrow(() -> new RuntimeException("삭제된 예약입니다.")).getPositionReservation().getId();
-
             if (user.getId().equals(cancelReservationDto.getUserId())) {
                 LocalDate reservationDate = lessonReservation.getDate();
-                LocalTime reservationStartTime = lessonReservation.getTime().getStartTime();
+                LocalTime reservationStartTime = lessonReservation.getTime().getLessonTimeTable().getStartTime();
 
                 if (reservationDate.compareTo(getNowDate()) == 0) {
                     Duration duration = Duration.between(getNowTime(), reservationStartTime);
@@ -140,18 +142,14 @@ public class MyInfoService {
                     }
                 }
                 lessonReservationRepository.deleteById(cancelReservationDto.getReservationId());
-                positionReservationRepository.deleteById(positionReservationId);
-                //positionReservationRepository.deleteById(cancelReservationDto.getReservationId());
-                CancelReservation cancelReservation = CancelReservation.builder()
+                CancelReservationLesson cancelReservationLesson = CancelReservationLesson.builder()
                         .id(lessonReservation.getId())
                         .user(lessonReservation.getUser())
                         .date(lessonReservation.getDate())
-                        .time(lessonReservation.getTime())
-                        .positionId(lessonReservation.getPositionReservation().getPositionId())
+                        .instructorTime(lessonReservation.getTime())
                         .createAt(getNowDate())
                         .build();
-                cancelReservationRepository.save(cancelReservation);
-
+                cancelReservationLessonRepository.save(cancelReservationLesson);
 
             } else {
                 throw new RuntimeException("해당 유저가 예약한 값이 아닙니다.");
@@ -164,6 +162,11 @@ public class MyInfoService {
     public boolean isReservationToday(String uid, LocalDate date){
         User loginUser = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("없는 유저 정보 입니다."));
         return positionReservationRepository.existsByUserIdAndDate(loginUser, date);
+    }
+
+    public boolean isReservationTodayLesson(String uid, LocalDate date){
+        User loginUser = userRepository.findById(uid).orElseThrow(() -> new RuntimeException("없는 유저 정보 입니다."));
+        return lessonReservationRepository.existsByUserAndDate(loginUser, date);
     }
 
     private LocalDate getNowDate() {

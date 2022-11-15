@@ -1,15 +1,14 @@
 package com.lodong.spring.golfreservation.controller;
 
-import com.lodong.spring.golfreservation.domain.Instructor;
+import com.lodong.spring.golfreservation.domain.lesson.Instructor;
 import com.lodong.spring.golfreservation.domain.Position;
 import com.lodong.spring.golfreservation.dto.LessonReservationDto;
-import com.lodong.spring.golfreservation.dto.PositionReservationDto;
 import com.lodong.spring.golfreservation.dto.ReservationByInstructorDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonReservationCheckDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
 import com.lodong.spring.golfreservation.responseentity.service.LessonReservationService;
 import com.lodong.spring.golfreservation.responseentity.service.PositionReservationService;
 import com.lodong.spring.golfreservation.util.MakeResponseEntity;
-import jdk.jshell.Snippet;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.PropertyValueException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,6 @@ public class LessonReservationController {
                 System.out.println(file.getName());
                 System.out.println(file.length());
                 System.out.println(file.getAbsolutePath());
-
             }*/
             Resource resource = new ClassPathResource("static" + File.separator + "images" + File.separator + "instructor" + File.separator + fileName);
             InputStream is = resource.getInputStream();
@@ -105,18 +103,17 @@ public class LessonReservationController {
     }
 
     @GetMapping("/get/reservation-info")
-    public ResponseEntity<?> getReservationInfo(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<?> getReservationInfo(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, String instructorId) {
         try {
-            Map<Integer, List<PositionReservationDto>> positionReservationDtoList = positionReservationService.getReservationListByDateAndPosition(date);
+            List<LessonReservationCheckDto>  lessonReservationCheckDtos = lessonReservationService.getReservationListByDateAndInstructorId(date, instructorId);
             StatusEnum statusEnum = StatusEnum.OK;
-            String message = "각 타석 에 대한 시간 예약 정보";
-            return getResponseMessage(statusEnum, message, positionReservationDtoList);
+            String message = "선택한 강사에 대한 시간 예약 정보";
+            return getResponseMessage(statusEnum, message, lessonReservationCheckDtos);
         }catch (Exception e){
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
-
     }
 
     @PostMapping("/do/reservation")
@@ -158,18 +155,18 @@ public class LessonReservationController {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = propertyValueException.getMessage();
             return getResponseMessage(statusEnum, message);
-        } catch (SQLIntegrityConstraintViolationException sqlIntegrityConstraintViolationException) {
-            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
-            String message = reservation.getTime() + "시간의 " + reservation.getPositionId() + "번 타석은 이미 예약되었습니다.";
-            return getResponseMessage(statusEnum, message);
-        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+        }  catch (DataIntegrityViolationException dataIntegrityViolationException) {
             StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
             String message = "하루에 한번의 예약만 가능합니다.";
+            return getResponseMessage(statusEnum, message);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
             return getResponseMessage(statusEnum, message);
         }
 
         StatusEnum statusEnum = StatusEnum.OK;
-        String message = reservation.getPositionId() + "번 타석 " + reservation.getDate() + " " + reservation.getTime() + " 예약 성공";
+        String message = reservation.getDate() + " " + reservation.getTime() + " 예약 성공";
         return getResponseMessage(statusEnum, message);
     }
 

@@ -35,7 +35,7 @@ public class PositionReservationController {
     public ResponseEntity<?> getReservationListByDateAndPosition(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
             Map<Integer, List<PositionReservationDto>> positionReservationDtoList = positionReservationService
-                    .getReservationListByDateAndPosition(date);
+                    .getReservationListByDateAndInstructorId(date);
             StatusEnum statusEnum = StatusEnum.OK;
             String message = "각 타석 에 대한 시간 예약 정보";
             return getResponseMessage(statusEnum, message, positionReservationDtoList);

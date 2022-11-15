@@ -1,15 +1,13 @@
-package com.lodong.spring.golfreservation.domain;
+package com.lodong.spring.golfreservation.domain.lesson;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lodong.spring.golfreservation.domain.Timetable;
+import com.lodong.spring.golfreservation.domain.User;
 import lombok.*;
 
 import javax.persistence.*;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Date;
 
 @Entity
 @Getter @Setter @ToString @Builder
@@ -18,17 +16,13 @@ public class LessonReservation {
     @Id
     private String id;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "position_reservation_id")
-    private PositionReservation positionReservation;
-
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDate date;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "time")
-    private Timetable time;
+    private InstructorTime time;
 
     @Column(nullable = false)
     private LocalDateTime createAt;

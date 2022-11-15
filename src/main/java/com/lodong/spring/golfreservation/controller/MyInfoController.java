@@ -88,4 +88,22 @@ public class MyInfoController {
         }
     }
 
+    @GetMapping("/today-reservation/lesson")
+    public ResponseEntity<?> isReservationLessonToday(String uid,@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        try {
+            boolean isTodayReservation = myInfoService.isReservationTodayLesson(uid, date);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "오늘 예약 했는지 여부";
+            return MakeResponseEntity.getResponseMessage(statusEnum, message, isTodayReservation);
+        } catch (NullPointerException nullPointerException) {
+            StatusEnum statusEnum = StatusEnum.NOT_FOUND;
+            String message = nullPointerException.getMessage();
+            return MakeResponseEntity.getResponseMessage(statusEnum, message);
+        } catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.NOT_FOUND;
+            String message = "알수없는 에러"  + e.getMessage();
+            return MakeResponseEntity.getResponseMessage(statusEnum, message);
+        }
+    }
+
 }
