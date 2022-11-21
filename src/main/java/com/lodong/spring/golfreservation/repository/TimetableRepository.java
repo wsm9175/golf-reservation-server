@@ -1,6 +1,6 @@
 package com.lodong.spring.golfreservation.repository;
 
-import com.lodong.spring.golfreservation.domain.Timetable;
+import com.lodong.spring.golfreservation.domain.delete.Timetable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalTime;

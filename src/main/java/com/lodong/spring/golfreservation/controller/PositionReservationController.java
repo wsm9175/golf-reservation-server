@@ -1,8 +1,10 @@
 package com.lodong.spring.golfreservation.controller;
 
-import com.lodong.spring.golfreservation.dto.PositionLockDto;
-import com.lodong.spring.golfreservation.dto.PositionReservationDto;
+import com.lodong.spring.golfreservation.dto.position.PositionReservationDeleteDto;
+import com.lodong.spring.golfreservation.dto.position.PositionLockDto;
+import com.lodong.spring.golfreservation.dto.position.PositionReservationDto;
 import com.lodong.spring.golfreservation.dto.ReservationDto;
+import com.lodong.spring.golfreservation.dto.position.PositionReservationNotiDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
 import com.lodong.spring.golfreservation.responseentity.service.PositionReservationService;
 import lombok.extern.slf4j.Slf4j;
@@ -116,6 +118,7 @@ public class PositionReservationController {
             return getResponseMessage(statusEnum, message);
         }
     }
+
     @PostMapping("/unlock")
     public ResponseEntity<?> unlockPosition(@RequestBody List<PositionLockDto> positionLock) {
         try {
@@ -130,7 +133,37 @@ public class PositionReservationController {
         }
     }
 
+    @PostMapping("/delete")
+    public ResponseEntity<?> deletePositionReservation(@RequestBody PositionReservationDeleteDto positionReservationDelete) {
+        try {
+            positionReservationService.deletePositionReservation(positionReservationDelete);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "예약 삭제 완료";
+            return getResponseMessage(statusEnum, message, null);
+        }catch (NullPointerException nullPointerException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
 
+    @GetMapping("/notification")
+    public ResponseEntity<?> getNotification(){
+        try{
+            List<PositionReservationNotiDto> positionReservationNotiDtos = positionReservationService.getNotification(getNowDate());
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "오늘 작업 정보";
+            return getResponseMessage(statusEnum, message, positionReservationNotiDtos);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
 
     private LocalDate getNowDate() {
         LocalDate now = LocalDate.now();

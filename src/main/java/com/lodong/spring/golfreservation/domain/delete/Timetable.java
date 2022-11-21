@@ -1,4 +1,4 @@
-package com.lodong.spring.golfreservation.domain;
+package com.lodong.spring.golfreservation.domain.delete;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;

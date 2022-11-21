@@ -1,6 +1,6 @@
 package com.lodong.spring.golfreservation.repository;
 
-import com.lodong.spring.golfreservation.domain.PositionLock;
+import com.lodong.spring.golfreservation.domain.delete.PositionLock;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;

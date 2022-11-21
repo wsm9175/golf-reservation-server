@@ -1,6 +1,6 @@
 package com.lodong.spring.golfreservation.domain.cancel;
 
-import com.lodong.spring.golfreservation.domain.Timetable;
+import com.lodong.spring.golfreservation.domain.delete.Timetable;
 import com.lodong.spring.golfreservation.domain.User;
 import lombok.*;
 

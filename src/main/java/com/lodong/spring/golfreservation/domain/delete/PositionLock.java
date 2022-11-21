@@ -1,4 +1,4 @@
-package com.lodong.spring.golfreservation.domain;
+package com.lodong.spring.golfreservation.domain.delete;
 
 import lombok.*;
 

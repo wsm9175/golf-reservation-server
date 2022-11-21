@@ -1,13 +1,13 @@
 package com.lodong.spring.golfreservation.responseentity.service;
 
 import com.lodong.spring.golfreservation.domain.*;
-import com.lodong.spring.golfreservation.domain.lesson.Instructor;
-import com.lodong.spring.golfreservation.domain.lesson.InstructorTime;
-import com.lodong.spring.golfreservation.domain.lesson.LessonReservation;
-import com.lodong.spring.golfreservation.domain.lesson.LessonTimeTable;
+import com.lodong.spring.golfreservation.domain.lesson.*;
 import com.lodong.spring.golfreservation.dto.LessonReservationDto;
 import com.lodong.spring.golfreservation.dto.ReservationByInstructorDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonLockDto;
 import com.lodong.spring.golfreservation.dto.lesson.LessonReservationCheckDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonReservationDeleteDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonReservationNotiDto;
 import com.lodong.spring.golfreservation.repository.*;
 import com.lodong.spring.golfreservation.util.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +32,9 @@ public class LessonReservationService {
     private final InstructorTimeRepository instructorTimeRepository;
 
     private final HolidayRepository holidayRepository;
-
     private final UserRepository userRepository;
+
+    private final LessonLockRespository lessonLockRespository;
 
     private final LocalTime sat = LocalTime.of(22, 00, 00);
     private final LocalTime sunStart = LocalTime.of(8, 59, 00);
@@ -89,6 +90,10 @@ public class LessonReservationService {
         List<LessonReservation> lessonReservations = lessonReservationRepository
                 .findByDateAndInstructorId(date, instructorId)
                 .orElseThrow(() -> new NullPointerException("해당 강사는 예약 목록이 존재하지 않습니다."));
+        //해당 강사의 date 및 id를 기준으로 Lock리스트를 가져옴
+        List<LessonLock> lessonLocks = lessonLockRespository
+                .findByDateAndInstructorTime_Instructor_Id(date, instructorId)
+                .orElse(new ArrayList<>());
 
         List<LessonReservationCheckDto> lessonReservationCheckDtos = new ArrayList<>();
         //예약 목록을 이용해서 전송 데이터 셋팅
@@ -97,12 +102,23 @@ public class LessonReservationService {
             lessonReservationCheckDto.setStartTime(instructorTime.getLessonTimeTable().getStartTime());
             lessonReservationCheckDto.setEndTime(instructorTime.getLessonTimeTable().getEndTime());
             //예비로 일단 처리
-            lessonReservationCheckDto.setLock(false);
+
             for (LessonReservation lessonReservation : lessonReservations) {
                 if (lessonReservation.getTime().getLessonTimeTable().getStartTime().equals(instructorTime.getLessonTimeTable().getStartTime())) {
                     lessonReservationCheckDto.setReservationMemberName(lessonReservation.getUser().getName());
                     lessonReservationCheckDto.setReservation(true);
                     break;
+                }
+
+            }
+            lessonReservationCheckDto.setLock(false);
+            for (LessonLock lessonLock : lessonLocks) {
+                // 날짜 일치 및 시간 일치 및 강사 아이디가 일치시 lock
+                if (lessonLock.getDate().equals(date) &&
+                        lessonLock.getInstructorTime().getLessonTimeTable().getStartTime().equals(instructorTime.getLessonTimeTable().getStartTime()) &&
+                        lessonLock.getInstructorTime().getInstructor().getId().equals(instructorTime.getInstructor().getId())) {
+                    lessonReservationCheckDto.setLock(true);
+
                 }
             }
             lessonReservationCheckDtos.add(lessonReservationCheckDto);
@@ -139,10 +155,8 @@ public class LessonReservationService {
         log.info(lessonReservation.toString());
 
         lessonReservationRepository.save(lessonReservation);
-
-
     }
-
+    @Transactional
     public List<ReservationByInstructorDto> getReservationListByInstructorIdAndDate(String instructorId, LocalDate date) {
         List<LessonReservation> lessonReservations = lessonReservationRepository
                 .findByDateAndInstructorId(date, instructorId)
@@ -160,5 +174,59 @@ public class LessonReservationService {
         });
 
         return reservationByInstructorDtoList;
+    }
+    @Transactional
+    public void lockLesson(List<LessonLockDto> lessonLockDtos){
+        ArrayList<LessonLock> lessonLocks = new ArrayList<>();
+        for(LessonLockDto lessonLockDto:lessonLockDtos){
+            InstructorTime instructorTime = instructorTimeRepository
+                    .findByLessonTimeTable_StartTimeAndInstructorId(lessonLockDto.getTime(),lessonLockDto.getInstructorId())
+                    .orElseThrow(()->new NullPointerException("해당 시간은 존재하지 않습니다."));
+            LessonLock lessonLock = LessonLock.builder()
+                    .id(UUID.randomUUID().toString())
+                    .instructorTime(instructorTime)
+                    .date(lessonLockDto.getDate())
+                    .build();
+            lessonLocks.add(lessonLock);
+        }
+
+        lessonLockRespository.saveAll(lessonLocks);
+    }
+
+    @Transactional
+    public void unLockLesson(List<LessonLockDto> lessonLockDtos){
+        for(LessonLockDto lessonLockDto : lessonLockDtos){
+            LessonLock lessonLock = lessonLockRespository
+                    .findByDateAndInstructorTime_LessonTimeTable_StartTimeAndInstructorTime_Instructor_Id(lessonLockDto.getDate(),lessonLockDto.getTime(), lessonLockDto.getInstructorId())
+                    .orElseThrow(()->new NullPointerException("해당 잠금은 존재하지 않습니다."));
+            lessonLockRespository.delete(lessonLock);
+        }
+    }
+
+    @Transactional
+    public void deleteLesson(LessonReservationDeleteDto lessonReservationDeleteDto){
+        lessonReservationRepository
+                .deleteByDateAndTime_LessonTimeTable_StartTimeAndInstructor_Id(lessonReservationDeleteDto.getDate(), lessonReservationDeleteDto.getTime(), lessonReservationDeleteDto.getInstructorId());
+    }
+
+    public List<LessonReservationNotiDto> getNotification(LocalDate todayDate){
+        List<LessonReservation> lessonReservations = lessonReservationRepository
+                .findByDate(todayDate)
+                .orElseThrow(()-> new NullPointerException());
+
+        List<LessonReservationNotiDto> lessonReservationNotiDtos = new ArrayList<>();
+
+        for(LessonReservation lessonReservation : lessonReservations){
+            LessonReservationNotiDto lessonReservationNotiDto = new LessonReservationNotiDto();
+            lessonReservationNotiDto.setReservationDate(lessonReservation.getDate());
+            lessonReservationNotiDto.setReservationStartTime(lessonReservation.getTime().getLessonTimeTable().getStartTime());
+            lessonReservationNotiDto.setReservationEndTime(lessonReservation.getTime().getLessonTimeTable().getEndTime());
+            lessonReservationNotiDto.setCreateAt(lessonReservation.getCreateAt());
+            lessonReservationNotiDto.setInstructorName(lessonReservation.getInstructor().getName());
+            lessonReservationNotiDto.setCustomerName(lessonReservation.getUser().getName());
+            lessonReservationNotiDtos.add(lessonReservationNotiDto);
+        }
+
+        return lessonReservationNotiDtos;
     }
 }

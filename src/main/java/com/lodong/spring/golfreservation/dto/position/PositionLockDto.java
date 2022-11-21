@@ -1,4 +1,4 @@
-package com.lodong.spring.golfreservation.dto;
+package com.lodong.spring.golfreservation.dto.position;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

@@ -1,10 +1,13 @@
 package com.lodong.spring.golfreservation.controller;
 
 import com.lodong.spring.golfreservation.domain.lesson.Instructor;
-import com.lodong.spring.golfreservation.domain.Position;
+import com.lodong.spring.golfreservation.domain.delete.Position;
 import com.lodong.spring.golfreservation.dto.LessonReservationDto;
 import com.lodong.spring.golfreservation.dto.ReservationByInstructorDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonLockDto;
 import com.lodong.spring.golfreservation.dto.lesson.LessonReservationCheckDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonReservationDeleteDto;
+import com.lodong.spring.golfreservation.dto.lesson.LessonReservationNotiDto;
 import com.lodong.spring.golfreservation.responseentity.StatusEnum;
 import com.lodong.spring.golfreservation.responseentity.service.LessonReservationService;
 import com.lodong.spring.golfreservation.responseentity.service.PositionReservationService;
@@ -28,7 +31,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 import static com.lodong.spring.golfreservation.util.MakeResponseEntity.getResponseMessage;
 
@@ -56,24 +58,8 @@ public class LessonReservationController {
 
     @GetMapping("/{fileName}")
     public ResponseEntity<?> instructorFileDownload(@PathVariable String fileName) {
-        //Resource resource = resourceLoader.getResource("classpath:static"+File.separator+ "images"+File.separator+"instructor" + File.separator + fileName);
-        /* Resource resource = new ClassPathResource("static" + File.separator + "images" + File.separator + "instructor" + File.separator);*/
         try {
-         /*   InputStream in = resource.getInputStream();
-            File file = File.createTempFile(fileName, ".png");
-            try (FileOutputStream fos = new FileOutputStream(file)) {
-                int read;
-                byte[] bytes = new byte[1024];
 
-                while ((read = in.read(bytes)) != -1) {
-                    fos.write(bytes, 0, read);
-                }
-
-                InputStream targetStream = new FileInputStream(file);
-                System.out.println(file.getName());
-                System.out.println(file.length());
-                System.out.println(file.getAbsolutePath());
-            }*/
             Resource resource = new ClassPathResource("static" + File.separator + "images" + File.separator + "instructor" + File.separator + fileName);
             InputStream is = resource.getInputStream();
             File tempFile = File.createTempFile(String.valueOf(is.hashCode()), ".png");
@@ -185,6 +171,68 @@ public class LessonReservationController {
         }
     }
 
+    @PostMapping("lock")
+    public ResponseEntity<?> lockLesson(@RequestBody List<LessonLockDto> lessonLockDtos){
+        try{
+            lessonReservationService.lockLesson(lessonLockDtos);
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "잠금 성공";
+            return getResponseMessage(statusEnum, message, null);
+        }catch (NullPointerException nullPointerException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
+            return getResponseMessage(statusEnum, message,null);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "잘못된 요청입니다." + e.getMessage();
+            return getResponseMessage(statusEnum, message,null);
+        }
+    }
+    @PostMapping("unlock")
+    public ResponseEntity<?> unLockLesson(@RequestBody List<LessonLockDto> lessonLockDtos){
+        try{
+            lessonReservationService.unLockLesson(lessonLockDtos);
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "잠금해제 성공";
+            return getResponseMessage(statusEnum, message, null);
+        }catch (NullPointerException nullPointerException){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = nullPointerException.getMessage();
+            return getResponseMessage(statusEnum, message, null);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = "잘못된 요청입니다." + e.getMessage();
+            return getResponseMessage(statusEnum, message, null);
+        }
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteLesson(@RequestBody LessonReservationDeleteDto lessonReservationDeleteDto){
+        try{
+            lessonReservationService.deleteLesson(lessonReservationDeleteDto);
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "삭제 성공";
+            return getResponseMessage(statusEnum, message, null);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
+
+    @GetMapping("/notification")
+    public ResponseEntity<?> getNotification(){
+        try{
+            List<LessonReservationNotiDto> lessonReservationNotiDtos = lessonReservationService.getNotification(getNowDate());
+            StatusEnum statusEnum = StatusEnum.OK;
+            String message = "오늘 작업 정보";
+            return getResponseMessage(statusEnum, message, lessonReservationNotiDtos);
+        }catch (Exception e){
+            StatusEnum statusEnum = StatusEnum.BAD_REQUEST;
+            String message = e.getMessage();
+            return getResponseMessage(statusEnum, message);
+        }
+    }
 
     private LocalDate getNowDate() {
         LocalDate now = LocalDate.now();

@@ -1,7 +1,6 @@
 package com.lodong.spring.golfreservation.domain.lesson;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lodong.spring.golfreservation.domain.Timetable;
 import com.lodong.spring.golfreservation.domain.User;
 import lombok.*;
 

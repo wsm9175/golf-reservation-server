@@ -1,9 +1,14 @@
 package com.lodong.spring.golfreservation.responseentity.service;
 
 import com.lodong.spring.golfreservation.domain.*;
-import com.lodong.spring.golfreservation.dto.PositionLockDto;
-import com.lodong.spring.golfreservation.dto.PositionReservationDto;
+import com.lodong.spring.golfreservation.domain.delete.*;
+import com.lodong.spring.golfreservation.domain.lesson.LessonReservation;
+import com.lodong.spring.golfreservation.dto.lesson.LessonReservationNotiDto;
+import com.lodong.spring.golfreservation.dto.position.PositionLockDto;
+import com.lodong.spring.golfreservation.dto.position.PositionReservationDeleteDto;
+import com.lodong.spring.golfreservation.dto.position.PositionReservationDto;
 import com.lodong.spring.golfreservation.dto.ReservationDto;
+import com.lodong.spring.golfreservation.dto.position.PositionReservationNotiDto;
 import com.lodong.spring.golfreservation.repository.*;
 import com.lodong.spring.golfreservation.util.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +80,7 @@ public class PositionReservationService {
         }
 
         //해당 날짜의 타석 예약정보
-        List<PositionReservation> positionReservations = positionReservationRepository.findByDate(date);
+        List<PositionReservation> positionReservations = positionReservationRepository.findByDate(date).orElse(new ArrayList<>());
         //각 포지션별 시간당 예약정보를 담을 변수 선언
         Map<Integer, List<PositionReservationDto>> reservationInfoByPosition = new HashMap<>();
         //예약정보 삽입
@@ -178,6 +183,33 @@ public class PositionReservationService {
                     positionLockDto.getDate(),
                     positionLockDto.getTime());
         }
+    }
+
+    public List<PositionReservationNotiDto> getNotification(LocalDate todayDate){
+        List<PositionReservation> positionReservations = positionReservationRepository
+                .findByDate(todayDate)
+                .orElseThrow(()-> new NullPointerException());
+
+        List<PositionReservationNotiDto> positionReservationNotiDtos = new ArrayList<>();
+
+        for(PositionReservation positionReservation : positionReservations){
+            PositionReservationNotiDto positionReservationNotiDto = new PositionReservationNotiDto();
+            positionReservationNotiDto.setReservationDate(positionReservation.getDate());
+            positionReservationNotiDto.setReservationTime(positionReservation.getTime().getStartTime());
+            positionReservationNotiDto.setReservationEndTime(positionReservation.getTime().getEndTime());
+            positionReservationNotiDto.setCreateAt(positionReservation.getCreateAt());
+            positionReservationNotiDto.setPositionId(positionReservation.getPositionId());
+            positionReservationNotiDto.setCustomerName(positionReservation.getUserId().getName());
+            positionReservationNotiDtos.add(positionReservationNotiDto);
+        }
+
+        return positionReservationNotiDtos;
+    }
+
+    @Transactional
+    public void deletePositionReservation(PositionReservationDeleteDto positionReservationDeleteDto){
+        positionReservationRepository
+                .deleteByDateAndTime_StartTimeAndPositionId(positionReservationDeleteDto.getDate(), positionReservationDeleteDto.getTime(), positionReservationDeleteDto.getPositionId());
     }
 
 }
